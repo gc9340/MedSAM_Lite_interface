@@ -10,15 +10,16 @@ This was developed and tested mainly on Windows 11 and python 3.10.14. Some test
 done on Ubuntu 24.04.
 
 
+Step 0. If you haven't already, follow the instructions for MedSAM Lite to get a trained `medsam_lite_latest.pth` file.
 
-
-1. Clone the repository, `git clone -b main https://github.com/gc9340/MedSAM_Lite_interface/`
+1. Clone the repository, `git clone -b MedSAM_Interface https://github.com/gc9340/MedSAM_Lite_interface/`
 2. Go into the MedSAM_Lite_interface folder
 3. Create a virtual environment using conda `conda env create --name medsam_interface -f interface.yml`
 4. Activate the environment `conda activate  medsam_interface`
 5. Install [Pytorch 2.0](https://pytorch.org/get-started/locally/)
-6. `python manage.py runserver`
-7. Open a web browser and navigate to http://localhost:8000
+6. Place `medsam_lite_latest.pth` directly inside the `UHN` folder
+7. Run `python manage.py runserver`
+8. Open a web browser and navigate to http://localhost:8000
 
 ## Usage
 
