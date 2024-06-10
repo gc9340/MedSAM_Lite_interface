@@ -24,7 +24,7 @@ done on Ubuntu 24.04.
 
 Hopefully you should see something like this
 
-
+![Alt text](https://github.com/gc9340/MedSAM_Lite_interface/blob/main/home_page.png?raw=true)
 
 This interface works on the same data that the MedSAM Lite setup tutorial uses. You can find some data examples in `interface/npz_examples/`. 
 Since that was involving 3D inference, the inference for 2D has not been thoroughly tested, so be wary of errors and bugs when running 2D inference. 
@@ -35,10 +35,13 @@ Since that was involving 3D inference, the inference for 2D has not been thoroug
 4. Click the `Run MedSam On File` button on the bottom left
 5. Wait for the server to finish performing inference and saving a .png (should be a few seconds or so)
 6. The entry should now appear in the inference history table on the right
+
+![Alt text](https://github.com/gc9340/MedSAM_Lite_interface/blob/main/upload.png?raw=true)
 7. Click on the file name in the table to open up the entry in a modal
+
 8. Use the modal to view the png or delete the entry
 
-
+![Alt text](https://github.com/gc9340/MedSAM_Lite_interface/blob/main/modal.png?raw=true)
 
 
 
