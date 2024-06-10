@@ -1,0 +1,168 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedSam Lite Model</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+</head>
+<body>
+    <div class="container">
+        <div class="left-half">
+            <div class="section" id="upload-section">
+                <h2>Upload File</h2>
+                <form id="upload-form" method="post" enctype="multipart/form-data" action="{% url 'upload' %}">
+                    {% csrf_token %}
+                    <div class="upload-controls">
+                        <label for="file-upload" class="file-upload-button">
+                            Choose File
+                            <input type="file" id="file-upload" name="file-upload" accept=".npz" />
+                        </label>
+                    </div>
+                    <div class="radio-controls">
+                        <label>
+                            <input type="radio" name="inference-type" value="2D"> 2D Inference
+                        </label>
+                        <label>
+                            <input type="radio" name="inference-type" value="3D"> 3D Inference
+                        </label>
+                    </div>
+                </form>
+            </div>
+
+            <div class="section" id="prediction-section">
+                <button type="submit" id="upload-button" form="upload-form">Run MedSam On File</button>
+            </div>
+        </div>
+
+        <div class="right-half">
+            <div class="section" id="history-section">
+                <h2>Prediction History</h2>
+                <div class="history-content" id="history-content">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>File Name</th>
+                                <th>Inference Time</th>
+                                <th>Dimension</th>
+                                <th>Date Uploaded</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in history %}
+                            <tr>
+                                <td><a href="#" class="history-item" data-item="{{ item.0 }}">{{ item.0 }}</a></td>
+                                <td>{{ item.1 }}</td>
+                                <td>{{ item.2 }}</td>
+                                <td>{{ item.3 }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4">No Files Tested</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- The Modal -->
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <p id="modal-text">Some text in the Modal..</p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('upload-form').addEventListener('submit', function (event) {
+            const fileInput = document.getElementById('file-upload');
+            const file = fileInput.files[0];
+            const radioButtons = document.querySelectorAll('input[name="inference-type"]');
+            const selectedRadioButton = Array.from(radioButtons).find(radio => radio.checked);
+
+            if (!file) {
+                alert('No file uploaded. Please upload a file.');
+                event.preventDefault();
+                return;
+            }
+
+            if (!selectedRadioButton) {
+                alert('No inference type selected. Please select either 2D Inference or 3D Inference.');
+                event.preventDefault();
+                return;
+            }
+
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+            if (fileExtension !== 'npz') {
+                alert('Only .npz files are allowed. Please upload a file with the .npz extension.');
+                event.preventDefault();
+            }
+        });
+
+        document.getElementById('file-upload').addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            const uploadButton = document.getElementById('upload-button');
+            if (file) {
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+                if (fileExtension === 'npz') {
+                    document.getElementById('file-status').textContent = `File Uploaded: ${file.name}`;
+                    uploadButton.textContent = `Run MedSam On ${file.name}`;
+                } else {
+                    document.getElementById('file-status').textContent = `No File Uploaded`;
+                    uploadButton.textContent = `Run MedSam On File`;
+                }
+            } else {
+                document.getElementById('file-status').textContent = `No File Uploaded`;
+                uploadButton.textContent = `Run MedSam On File`;
+            }
+        });
+
+        // Modal functionality
+        const modal = document.getElementById("myModal");
+        const modalContent = document.querySelector(".modal-content");
+        const span = document.getElementsByClassName("close")[0];
+
+        document.querySelectorAll('.history-item').forEach(item => {
+            item.addEventListener('click', function (event) {
+                event.preventDefault();
+                document.getElementById('modal-text').textContent = this.getAttribute('data-item');
+
+                setTimeout(() => {
+                    modal.style.display = "flex";
+                    modalContent.style.display = "flex";
+                    modal.classList.add('modal-fade-in');
+                    modalContent.classList.remove('modal-exit');
+                }, 10); // Add fade-in class
+            });
+        });
+
+        span.onclick = function () {
+            modalContent.classList.add('modal-exit');
+            modal.classList.remove('modal-fade-in');
+            setTimeout(() => modal.style.display = "none", 500); // Wait for fade-out transition
+        }
+
+        window.onclick = function (event) {
+            if (event.target == modal) {
+                modalContent.classList.add('modal-exit');
+                modal.classList.remove('modal-fade-in');
+                setTimeout(() => modal.style.display = "none", 500); // Wait for fade-out transition
+            }
+        }
+    </script>
+</body>
+</html>
+
+
+
+Make the following adjustments to the html and css:
+- make the inference radio option beside the file upload, not underneath it
+- add another section beside the inference section that has a drop down menu which has 4 options, cuda:0, cpu, mps, cuda. Make cuda:0 the default. Title this section, "Select Device" and make sure it gets sent with the form when the "Run File On MedSam" button is pressed.
+- Get rid of the Prediction section, and the "File Uploaded: ...." text
+- Display a message like "MedSam Lite running on <file name>
+    " after the form is successfully sent to the server. Put this message on the left half of the screen
+    - Once the server responds successfully, do 2 things. The first is change the message to "Completed Segmentation Of <file name>". The second change is to make a section where an image will go, and make a button appear beside the image that says, "Save Model Inference". Don't make the button do anything yet. I don't have the image yet, so you can use a temporary img tag for now.

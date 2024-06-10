@@ -1,0 +1,358 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedSam Lite Model</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+</head>
+<body>
+    <div class="container">
+        <div class="left-half">
+            <div class="file-specs">
+                <div class="section" id="upload-section">
+                    <h2>Upload File</h2>
+                    <form id="upload-form" method="post" enctype="multipart/form-data" action="{% url 'upload' %}">
+                        {% csrf_token %}
+                        <div class="upload-controls">
+                            <label for="file-upload" class="file-upload-button">
+                                Choose File
+                                <input type="file" id="file-upload" name="file-upload" accept=".npz" />
+                            </label>
+                        </div>
+                        <div class="dimension-section">
+                            <h2>Dimension</h2>
+                            <div class="radio-controls">
+                                <label>
+                                    <input type="radio" name="inference-type" value="2D"> 2D Inference
+                                </label>
+                                <label>
+                                    <input type="radio" name="inference-type" value="3D"> 3D Inference
+                                </label>
+                            </div>
+                        </div>
+                        <div class="section" id="device-section">
+                            <h2>Select Device</h2>
+
+                            <div class="device-controls">
+                                <select id="device-select" name="selected-device" onchange="toggleTextInput()">
+
+                                    <option value="cuda">cuda</option>
+                                    <option value="cpu">cpu</option>
+                                    <option value="other">Other (Specify)</option>
+
+                                </select>
+                            </div>
+                            <div id="input-container">
+                                <input type="text" id="device-input" name="other-device" placeholder="default device is cuda">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="section" id="prediction-section">
+                    <button type="submit" id="upload-button" form="upload-form">Run MedSam On File</button>
+                </div>
+            </div>
+            <div class="message-display">
+              
+                <div class="message-display-title">
+                    <h2> Current File </h2>
+                </div>
+                <div class="message-display-file-name">
+                    <span class="message-display-label">File Name: </span>
+                    <span class="message-display-text" id="file-name">No File Uploaded</span>
+                </div>
+                <div class="message-display-file-status">
+                    <span class="message-display-label">Status: </span>
+                    <span class="message-display-text" id="file-status">No File Uploaded</span>
+                </div>
+                <div class="message-display-server-message">
+                    <div class="initial-server-message">
+                        <span class="message-display-label">Server Message: </span>
+                        <span class="message-display-text" id="server-message-1">{{ main_message }}</span>
+                    </div>
+                    <div class="updated-server-message">
+                        {% for message in server_messages %}
+
+                            {% if message|slice:"0:5" == "ERROR" %}
+                                <span class="updated-message-display-text">- {{ message }}</span>
+                            {% else %}
+                                <span class="updated-message-display-text">- {{ message }}</span>
+                            {% endif %}
+
+                      
+                        {% empty %}
+
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+
+        <div class="right-half">
+            <div class="section" id="history-section">
+                <h2>Inference History</h2>
+                <div class="history-content" id="history-content">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                {% if order_by == '-name' %}
+                                <th class="sort-button sort-desc">File Name<span class="arrow"></span></th>
+                                {% elif order_by == 'name' %}
+                                <th class="sort-button sort-asc">File Name<span class="arrow"></span></th>
+
+                                {% else %}
+                                <th class="sort-button">File Name<span class="arrow"></span></th>
+                                {% endif %}
+                                {% if order_by == '-prediction_time' %}
+                                <th class="sort-button sort-desc">Inference Time<span class="arrow"></span></th>
+                                {% elif order_by == 'prediction_time' %}
+                                <th class="sort-button sort-asc">Inference Time<span class="arrow"></span></th>
+
+                                {% else %}
+                                <th class="sort-button">Inference Time<span class="arrow"></span></th>
+                                {% endif %}
+                                {% if order_by == '-dimension' %}
+                                <th class="sort-button sort-desc">Dimension<span class="arrow"></span></th>
+                                {% elif order_by == 'dimension' %}
+                                <th class="sort-button sort-asc">Dimension<span class="arrow"></span></th>
+
+                                {% else %}
+                                <th class="sort-button">Dimension<span class="arrow"></span></th>
+                                {% endif %}
+
+                                {% if order_by == '-uploaded_at' %}
+                                <th class="sort-button sort-desc">Date Uploaded<span class="arrow"></span></th>
+                                {% elif order_by == 'uploaded_at' %}
+                                <th class="sort-button sort-asc">Date Uploaded<span class="arrow"></span></th>
+
+                                {% else %}
+                                <th class="sort-button">Date Uploaded<span class="arrow"></span></th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tf in test_files %}
+                            <tr>
+                                <td><div class="history-item" data-item="{{ tf.name }}">{{ tf.name }}</div></td>
+                                <td>{{ tf.prediction_time }} seconds</td>
+                                <td>{{ tf.dimension }}</td>
+                                <td>{{ tf.uploaded_at }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4">No Files Tested</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- The Modal -->
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <p id="modal-text"></p>
+            <img src="{{ MEDIA_URL }}no_png_found.png" alt="Image" id="modal-image" />
+            <form id="delete-file-form" method="post" action="{% url 'delete_file' %}" style="display:none;">
+                {% csrf_token %}
+                
+                 <input id="delete-file-name" type="text" name="file-name" value=""> 
+                        
+            </form>
+            <button id="delete-button" onclick="deleteConfirm()">Delete</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const sortButtons = document.querySelectorAll('.sort-button');
+
+            sortButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const column = button.getAttribute('data-sort');
+                    const currentOrder = button.classList.contains('sort-asc') ? 'asc' : 'desc';
+                    const newOrder = currentOrder === 'asc' ? '-' : '';
+                    const buttonText =  button.innerText;
+                    var form = document.createElement("form");
+                    form.setAttribute("method", "get");
+                    
+                    if (buttonText === 'File Name') {
+                        form.setAttribute("action", `http://localhost:8000/sort_by/` + newOrder + 'name');
+                    }
+                    else if (buttonText === 'Inference Time') {
+                        form.setAttribute("action", `http://localhost:8000/sort_by/` + newOrder + 'prediction_time');
+                        console.log(buttonText)
+                    }
+                    else if (buttonText === 'Dimension') {
+                        form.setAttribute("action", `http://localhost:8000/sort_by/` + newOrder + 'dimension');
+                    }
+                    else if (buttonText === 'Date Uploaded') {
+                        form.setAttribute("action", `http://localhost:8000/sort_by/` + newOrder + 'uploaded_at');
+                    }
+                    
+                    document.body.appendChild(form);
+                    form.submit()
+
+                });
+            });
+        });
+        document.getElementById('upload-form').addEventListener('submit', function (event) {
+            const fileInput = document.getElementById('file-upload');
+            const file = fileInput.files[0];
+            const radioButtons = document.querySelectorAll('input[name="inference-type"]');
+            const selectedRadioButton = Array.from(radioButtons).find(radio => radio.checked);
+            const selectedDevice = document.getElementById('device-select').value;
+
+            if (!file) {
+                alert('No file uploaded. Please upload a file.');
+                event.preventDefault();
+                return;
+            }
+
+            if (!selectedRadioButton) {
+                alert('No inference type selected. Please select either 2D Inference or 3D Inference.');
+                event.preventDefault();
+                return;
+            }
+
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+            if (fileExtension !== 'npz') {
+                alert('Only .npz files are allowed. Please upload a file with the .npz extension.');
+                event.preventDefault();
+            }
+
+            const formData = new FormData(document.getElementById('upload-form'));
+            formData.append('selected-device', selectedDevice);
+            document.getElementById('file-status').textContent = `Sending file for inference`;
+            document.getElementById('server-message-1').textContent = `File processing. Please wait`;
+
+            const pollServer = setInterval(fetchServerMessages, 1000);
+
+        });
+
+        document.getElementById('file-upload').addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            const uploadButton = document.getElementById('upload-button');
+            if (file) {
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+                const fileName = file.name.split('.')[0]
+                document.getElementById('file-name').textContent = `${file.name}`;
+                if (fileExtension === 'npz') { //file has to be npz format
+                    fetch('http://localhost:8000/check_exists/' + fileName )
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.exists) {
+                                document.getElementById('server-message-1').textContent = `See warning below`
+                                const message_tag = document.getElementsByClassName("updated-server-message")[0]
+                                message_tag.innerHTML = ''
+                                warning_div = document.createElement('div')
+                                warning_div.classList.add('bold-message');
+                                warning_span = document.createElement('span');
+                                warning_span.classList.add("warning-text");
+                                warning_span.textContent = "WARNING: "
+                                message_span = document.createElement('span');
+                                message_span.class = "message-display-text";
+                                message_span.textContent = "File already exists. If you proceed, you will overwrite the data"
+                                warning_div.appendChild(warning_span)
+                                warning_div.appendChild(message_span)
+                                message_tag.appendChild(warning_div)
+                            } else {
+                                console.error('Unexpected response format:', data);
+                            }
+                        })
+                        .catch(error => console.error('Error fetching server messages:', error));
+                    
+                    document.getElementById('file-status').textContent = `Ready for processing`;
+                    
+                } else {
+                    document.getElementById('file-status').textContent = `Unable to perfom inference`;
+                    document.getElementById('server-message-1').textContent = `File must be .npz format for inference`;
+                }
+            } else {
+                document.getElementById('file-name').textContent = `No File Uploaded`;
+                document.getElementById('file-status').textContent = `No File Uploaded`;
+                document.getElementById('server-message-1').textContent = `No File Uploaded`;
+            }
+        });
+
+        // Modal functionality
+        const modal = document.getElementById("myModal");
+        const modalContent = document.querySelector(".modal-content");
+        const span = document.getElementsByClassName("close")[0];
+
+        document.querySelectorAll('.history-item').forEach(item => {
+            item.addEventListener('click', function (event) {
+                event.preventDefault();
+                document.getElementById('modal-text').textContent = this.getAttribute('data-item');
+                document.getElementById('modal-image').src = "/media/" + this.getAttribute('data-item') + ".png"
+                setTimeout(() => {
+                    modal.style.display = "flex";
+                    modalContent.style.display = "flex";
+                    modalContent.style.flexDirection = "column";
+                    modal.classList.add('modal-fade-in');
+                    modalContent.classList.remove('modal-exit');
+                }, 10); // Add fade-in class
+            });
+        });
+
+        span.onclick = function () {
+            modalContent.classList.add('modal-exit');
+            modal.classList.remove('modal-fade-in');
+            setTimeout(() => modal.style.display = "none", 500); // Wait for fade-out transition
+        }
+
+        window.onclick = function (event) {
+            if (event.target == modal) {
+                modalContent.classList.add('modal-exit');
+                modal.classList.remove('modal-fade-in');
+                setTimeout(() => modal.style.display = "none", 500); // Wait for fade-out transition
+            }
+        }
+        function toggleTextInput() {
+            const dropdown = document.getElementById('device-select');
+            const textInputContainer = document.getElementById('input-container');
+
+            if (dropdown.value === 'other') {
+                textInputContainer.style.visibility = "visible"
+            } else {
+                textInputContainer.style.visibility = "hidden"
+            }
+        }
+        function deleteConfirm() {
+            const file_name = document.getElementById('modal-text').textContent;
+            if (confirm("Are you sure you want to delete " + file_name + "?")) {
+                const form = document.getElementById('delete-file-form');
+                document.getElementById('delete-file-name').value = file_name
+                form.submit()
+
+            } 
+        }
+        function fetchServerMessages() {
+            fetch('http://localhost:8000/get_server_messages')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.server_messages && Array.isArray(data.server_messages)) {
+                        const message_tag = document.getElementsByClassName("updated-server-message")[0]
+                        message_tag.innerHTML = ''
+                        data.server_messages.forEach(message => {
+                            message_span = document.createElement('span');
+                            message_span.class = "message-display-text";
+                            message_span.textContent = "- " + message
+                            message_tag.appendChild(message_span)
+                        });
+                    } else {
+                        console.error('Unexpected response format:', data);
+                    }
+                })
+                .catch(error => console.error('Error fetching server messages:', error));
+        }
+    </script>
+</body>
+</html>
