@@ -12,7 +12,7 @@ done on Ubuntu 24.04.
 
 
 
-1. Clone the repository, `git clone -b MedSAM_Interface https://github.com/gc9340/MedSAM_Lite_interface/`
+1. Clone the repository, `git clone -b main https://github.com/gc9340/MedSAM_Lite_interface/`
 2. Go into the MedSAM_Lite_interface folder
 3. Create a virtual environment using conda `conda env create --name medsam_interface -f interface.yml`
 4. Activate the environment `conda activate  medsam_interface`
