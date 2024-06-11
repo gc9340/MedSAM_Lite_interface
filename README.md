@@ -54,7 +54,7 @@ Since that was involving 3D inference, the inference for 2D has not been thoroug
 - Only cpu and cuda have been tested for devices
 - To change where data is stored/loaded, change `MEDIA_ROOT` in `django_backend/settings.py` and/or `PRED_IMG_PATH`, `SEGS_PATH `, `MODEL_PATH` in `UHN/views.py`
 - The performance on macOS is unknown
-
+- A report for an attempt at accelerating the inference is in the pdf _Accelerating Inference With MedSAM Lite_ in the root directory
  
 
 
