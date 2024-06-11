@@ -28,7 +28,7 @@ Hopefully you should see something like this
 
 ![Alt text](https://github.com/gc9340/MedSAM_Lite_interface/blob/main/home_page.png?raw=true)
 
-This interface works on the same data that the MedSAM Lite setup tutorial uses. You can find some data examples in `interface/npz_examples/`. 
+This interface works on the same data that the MedSAM Lite setup tutorial uses. You can find some data examples in `npz_files/`. 
 Since that was involving 3D inference, the inference for 2D has not been thoroughly tested, so be wary of errors and bugs when running 2D inference. 
 
 1. Click on the choose file button on the top left, and select an .npz file.
