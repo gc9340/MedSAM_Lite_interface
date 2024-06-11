@@ -11,11 +11,12 @@ done on Ubuntu 24.04.
 
 
 Step 0. If you haven't already, follow the instructions for MedSAM Lite to get a trained `medsam_lite_latest.pth` file.
+https://github.com/bowang-lab/MedSAM/tree/LiteMedSAM
 
 1. Clone the repository, `git clone -b main https://github.com/gc9340/MedSAM_Lite_interface/`
-2. Go into the MedSAM_Lite_interface folder
+2. `cd` into the MedSAM_Lite_interface folder
 3. Create a virtual environment using conda `conda env create --name medsam_interface -f interface.yml`
-4. Activate the environment `conda activate  medsam_interface`
+4. Activate the environment `conda activate medsam_interface`
 5. Install [Pytorch 2.0](https://pytorch.org/get-started/locally/)
 6. Place `medsam_lite_latest.pth` directly inside the `UHN` folder
 7. Run `python manage.py runserver`
@@ -38,11 +39,23 @@ Since that was involving 3D inference, the inference for 2D has not been thoroug
 6. The entry should now appear in the inference history table on the right
 
 ![Alt text](https://github.com/gc9340/MedSAM_Lite_interface/blob/main/upload.png?raw=true)
-7. Click on the file name in the table to open up the entry in a modal
 
-8. Use the modal to view the png or delete the entry
+7. You can sort by column by clicking on the column name
+8. Click on the file name in the table to open up the entry in a modal
+
+9. Use the modal to view the png or delete the entry
 
 ![Alt text](https://github.com/gc9340/MedSAM_Lite_interface/blob/main/modal.png?raw=true)
+
+## Notes
+
+- The only data that was available for testing was the FLAIR22 training data, so the files have to be in a similar format
+- As of now, only single file uploads work
+- Only cpu and cuda have been tested for devices
+- To change where data is stored/loaded, change `MEDIA_ROOT` in `django_backend/settings.py` and/or `PRED_IMG_PATH`, `SEGS_PATH `, `MODEL_PATH` in `UHN/views.py`
+- The performance on macOS is unknown
+
+ 
 
 
 
